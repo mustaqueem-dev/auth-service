@@ -1,9 +1,14 @@
+import app from './app';
 import { pool } from './config/db';
-import { initSql } from  "./config/init" // Imported as a TS variable!
+import { initSql } from './config/init';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 4001;
 
 const initDatabase = async () => {
   try {
-    // Direct execute, no file reading needed
     await pool.query(initSql);
     console.log('✅ Database schema initialized successfully.');
   } catch (error) {
@@ -14,16 +19,18 @@ const initDatabase = async () => {
 
 const startServer = async () => {
   try {
-    // Test connection
+    // Test DB connection and create schema
     const res = await pool.query('SELECT NOW() as current_time');
     console.log(`⏰ Database Time: ${res.rows[0].current_time}`);
-    
-    // Initialize tables
     await initDatabase();
     
-    console.log(`🚀 Auth Service DB Layer is READY! (Port configured for ${process.env.PORT})`);
+    // Start Express Server
+    app.listen(PORT, () => {
+      console.log(`🚀 Auth Service is running on http://localhost:${PORT}`);
+    });
+
   } catch (error) {
-    console.error('Failed to start Auth Service DB Layer:', error);
+    console.error('❌ Failed to start Auth Service:', error);
     process.exit(1);
   }
 };
